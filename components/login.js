@@ -1,15 +1,23 @@
 import React from 'react';
 import axios from 'axios';
-import Storage from '../utils/storage';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, StatusBar, KeyboardAvoidingView, Image, Alert } from 'react-native';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { loginAction, viewAction } from '../actions';
+import { DASHBOARD } from '../actions/actionTypes';
 
 class Login extends React.Component {
 	constructor(props){
 		super(props);
+
 		this.state = {
 			username: '',
 			password: ''
 		}
+
+		this.viewAction = props.viewAction;
+		this.loginAction = props.loginAction;
 	}
 	login = () => {
 
@@ -20,9 +28,12 @@ class Login extends React.Component {
 		.then(res => res.data)
 		.then(res => {
 			if(res.success){
-				Storage.set('token', res.data.token);
-			}else{
+				this.viewAction(DASHBOARD);
+				this.loginAction(res.data);
+			}else if(res.hasOwnProperty('errors')){
 				Alert.alert('Erro!', res.errors.join("\n"));
+			}else{
+				Alert.alert('Erro!', 'Erro ao efetuar login.');
 			}
 		}).catch(err => console.log(err));
 	}
@@ -100,4 +111,10 @@ const styles = StyleSheet.create({
     }
 });
 
-module.exports = Login;
+const mapStateToProps = store => ({
+	logado: store.usuarioState.logado
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators({ loginAction, viewAction }, dispatch);
+
+module.exports = connect(mapStateToProps, mapDispatchToProps)(Login);

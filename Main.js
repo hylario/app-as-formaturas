@@ -2,15 +2,17 @@ import React from 'react';
 import { StyleSheet, Text, View, Alert, ActivityIndicator, StatusBar } from 'react-native';
 import axios from 'axios';
 import Storage from './utils/storage';
-import Login from './components/login';
+import { Login, Dashboard, Financeiro, Sidebar, Topbar } from './components';
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { loginAction } from './actions';
+import Drawer from 'react-native-drawer';
 
 class Main extends React.Component {
 	constructor(props){
 		super(props);
 
 		this.state = {
-			nome: '',
 			loading: true
 		};
 	}
@@ -19,24 +21,23 @@ class Main extends React.Component {
 	}
 	componentDidMount(){
 
-		Storage.set('token', '');
+		// Storage.set('token', '');
 
 		Storage.get('token').then(token => {
 			if(token){
+				console.log("Token salvo no Storage: " + token);
 				axios.post('http://192.168.5.100/api/autenticar.json', {
 					token
 				})
 				.then(res => res.data)
 				.then(res => {
-					console.log(res);
 					if(res.success){
-						Storage.set('token', res.data.token);
-						this.setState({
-							nome: res.data.nome,
-							logado: true
-						});
-					}else{
+						this.props.loginAction(res.data);
+					}else if(res.hasOwnProperty('errors')){
 						Alert.alert('Erro!', res.errors.join("\n"));
+					}else{
+						Alert.alert('Erro!', 'Erro ao efetuar login.');
+						console.log(res);
 					}
 					this.setState({loading: false});
 				}).catch(err => console.log(err));
@@ -46,9 +47,19 @@ class Main extends React.Component {
 			}
 		});
 	}
+
+	closeControlPanel = () => {
+		this._drawer.close();
+	}
+
+	openControlPanel = () => {
+		this._drawer.open();
+	}
+
 	render() {
 		const loading = this.state.loading;
-		const { logado } = this.props;
+		const { logado, usuario, view } = this.props;
+		let currentView = null;
 		
 		if(loading){
 			return (
@@ -64,19 +75,33 @@ class Main extends React.Component {
 			);
 		}
 
+		switch(view){
+			case 'financeiro':
+				currentView = <Financeiro />;
+				break;
+			case 'dashboard':
+			default:
+				currentView = <Dashboard />;
+		}
+
 		return (
-			<View style={styles.container}>
-				<StatusBar hidden={true} />
-				<Text>Está logado.</Text>
-				<Text>{this.state.nome}</Text>
-			</View>
+			<Drawer
+				ref={ref => this._drawer = ref}
+				content={
+					<Sidebar closeDrawer={this.closeControlPanel} />
+				}
+				onClose={this.closeControlPanel}
+				openDrawerOffset={(viewport) => {
+					return 70
+				}}
+				tapToClose
+				>
+				<Topbar openDrawer={this.openControlPanel} />
+				{currentView}
+			</Drawer>
 		);
 	}
 }
-
-const mapStateToProps = store => ({
-	logado: store.usuarioState.logado
-});
 
 const styles = StyleSheet.create({
 	container: {
@@ -87,4 +112,12 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default connect(mapStateToProps)(Main);
+const mapStateToProps = store => ({
+	logado: store.usuarioState.logado,
+	usuario: store.usuarioState.usuario,
+	view: store.viewState.view
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators({ loginAction }, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

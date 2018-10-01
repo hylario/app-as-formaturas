@@ -1,3 +1,6 @@
+import Storage from '../utils/storage';
+import { LOGIN, LOGOUT } from '../actions/actionTypes';
+
 const initialState = {
 	logado: false,
 	usuario: null
@@ -5,13 +8,15 @@ const initialState = {
 
 export const usuarioReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case 'LOGIN':
+		case LOGIN:
+			Storage.set('token', action.usuario.token);
 			return {
 				...state,
 				logado: true,
 				usuario: action.usuario
 			};
-		case 'LOGOUT':
+		case LOGOUT:
+			Storage.set('token', '');
 			return {
 				...state,
 				logado: false,
