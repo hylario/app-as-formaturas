@@ -6,6 +6,7 @@ import { Login, Dashboard, Financeiro, Sidebar, Topbar } from './components';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { loginAction } from './actions';
+import Config from './config';
 import Drawer from 'react-native-drawer';
 
 class Main extends React.Component {
@@ -26,7 +27,7 @@ class Main extends React.Component {
 		Storage.get('token').then(token => {
 			if(token){
 				console.log("Token salvo no Storage: " + token);
-				axios.post('http://192.168.5.100/api/autenticar.json', {
+				axios.post(Config.apiUrl + 'autenticar.json', {
 					token
 				})
 				.then(res => res.data)

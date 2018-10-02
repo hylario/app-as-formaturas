@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { loginAction, viewAction } from '../actions';
 import { DASHBOARD } from '../actions/actionTypes';
+import Config from '../config';
 
 class Login extends React.Component {
 	constructor(props){
@@ -21,7 +22,7 @@ class Login extends React.Component {
 	}
 	login = () => {
 
-		axios.post('http://192.168.5.100/api/login.json', {
+		axios.post(Config.apiUrl + 'login.json', {
 			username: this.state.username,
 			password: this.state.password
 		})

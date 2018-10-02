@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { logoutAction } from '../actions';
 import { LabelledText } from '../utils';
+import Config from '../config';
 
 class Dashboard extends React.Component {
 	constructor(props){
@@ -18,7 +19,7 @@ class Dashboard extends React.Component {
 		this.logoutAction = props.logoutAction;
 	}
 	componentWillMount(){
-		axios.post('http://192.168.5.100/api/dashboard_formando.json', {}, {
+		axios.post(Config.apiUrl + 'dashboard_formando.json', {}, {
 			headers: {
 				'Authorization': 'Bearer ' + this.props.usuario.token,
 				'Content-Type': 'application/json'
